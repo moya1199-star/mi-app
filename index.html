@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refuerzo Matemática · 8° Básico · CCH</title>
+<!-- Firebase SDKs (cargados aquí para garantizar disponibilidad global) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --azul: #1F3864;
+    --azul-claro: #D9E2F3;
+    --azul-suave: #E8EEF7;
+    --naranja: #C55A11;
+    --naranja-claro: #FCE8D9;
+    --verde: #548235;
+    --verde-claro: #E2EFD9;
+    --rojo: #C00000;
+    --rojo-claro: #FBEAEA;
+    --gris: #595959;
+    --gris-claro: #F2F2F2;
+    --borde: #D0D5DD;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Calibri', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #222;
+    background: #F7F8FA;
+    line-height: 1.45;
+    min-height: 100vh;
+  }
+  header {
+    background: var(--azul);
+    color: #fff;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 4px solid var(--naranja);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  header .logo {
+    width: 42px; height: 42px;
+    background: var(--naranja);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 20px;
+  }
+  header h1 {
+    font-size: 18px; font-weight: 700; line-height: 1.15;
+  }
+  header .sub {
+    font-size: 12px; opacity: 0.85; font-weight: 400;
+  }
+  header .stats-mini {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  header .stat {
+    background: rgba(255,255,255,0.12);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    min-width: 56px;
+  }
+  header .stat b { font-size: 16px; display: block; }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* HOME VIEW */
+  #home h2 {
+    color: var(--azul);
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  #home .lead {
+    color: var(--gris);
+    margin-bottom: 20px;
+    font-size: 15px;
+  }
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .module-card {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-left: 5px solid var(--azul);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .module-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-left-color: var(--naranja);
+  }
+  .module-card .num {
+    font-size: 12px;
+    color: var(--naranja);
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .module-card h3 {
+    color: var(--azul);
+    font-size: 17px;
+    margin-bottom: 2px;
+  }
+  .module-card p {
+    font-size: 13px;
+    color: var(--gris);
+  }
+  .module-card .tag {
+    display: inline-block;
+    background: var(--azul-suave);
+    color: var(--azul);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 6px;
+    align-self: flex-start;
+  }
+
+  .info-box {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .info-box h4 {
+    color: var(--azul);
+    font-size: 14px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .info-box p { font-size: 14px; color: var(--gris); }
+
+  /* MODULE VIEW */
+  #module-view { display: none; }
+  .breadcrumb {
+    font-size: 13px;
+    color: var(--gris);
+    margin-bottom: 10px;
+  }
+  .breadcrumb a {
+    color: var(--azul);
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  .module-header {
+    background: var(--azul);
+    color: #fff;
+    padding: 18px 22px;
+    border-radius: 10px 10px 0 0;
+  }
+  .module-header h2 { font-size: 22px; }
+  .module-header p { font-size: 14px; opacity: 0.9; margin-top: 2px; }
+
+  .difficulty-bar {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-top: none;
+    padding: 12px 22px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .difficulty-bar .label {
+    font-size: 13px;
+    color: var(--gris);
+    margin-right: 4px;
+  }
+  .diff-btn {
+    border: 1.5px solid var(--borde);
+    background: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gris);
+    transition: all 0.15s;
+  }
+  .diff-btn:hover { border-color: var(--azul); }
+  .diff-btn.active {
+    background: var(--azul);
+    border-color: var(--azul);
+    color: #fff;
+  }
+
+  .exercise-panel {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 24px 22px;
+  }
+  .ex-counter {
+    font-size: 12px;
+    color: var(--gris);
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .problem {
+    background: var(--azul-suave);
+    border-left: 4px solid var(--azul);
+    padding: 18px 20px;
+    border-radius: 6px;
+    font-size: 20px;
+    color: var(--azul);
+    margin-bottom: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .problem .statement { font-size: 15px; color: #222; font-weight: 400; margin-bottom: 10px; }
+  .problem .expr {
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--azul);
+  }
+
+  .answer-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .answer-row label {
+    font-size: 14px;
+    color: var(--gris);
+    font-weight: 600;
+  }
+  .answer-row input[type="text"],
+  .answer-row input[type="number"] {
+    padding: 10px 14px;
+    border: 2px solid var(--borde);
+    border-radius: 6px;
+    font-size: 18px;
+    font-family: inherit;
+    width: 140px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .answer-row input:focus { border-color: var(--azul); }
+  .answer-row input.ok { border-color: var(--verde); background: var(--verde-claro); }
+  .answer-row input.fail { border-color: var(--rojo); background: var(--rojo-claro); }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--naranja);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #a64a0e; }
+  .btn-primary:disabled { background: #bbb; cursor: not-allowed; }
+  .btn-secondary {
+    background: #fff;
+    border: 1.5px solid var(--azul);
+    color: var(--azul);
+  }
+  .btn-secondary:hover { background: var(--azul-suave); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--gris);
+    border: 1px solid var(--borde);
+  }
+  .btn-ghost:hover { background: var(--gris-claro); }
+
+  .feedback {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border-radius: 8px;
+    display: none;
+    animation: slideIn 0.25s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .feedback.ok {
+    display: block;
+    background: var(--verde-claro);
+    border-left: 4px solid var(--verde);
+  }
+  .feedback.fail {
+    display: block;
+    background: var(--rojo-claro);
+    border-left: 4px solid var(--rojo);
+  }
+  .feedback h5 {
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+  .feedback.ok h5 { color: var(--verde); }
+  .feedback.fail h5 { color: var(--rojo); }
+  .feedback .solution {
+    background: #fff;
+    border: 1px solid var(--borde);
+    padding: 12px 14px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 14px;
+  }
+  .feedback .solution .step {
+    padding: 4px 0;
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+    font-size: 15px;
+  }
+  .feedback .solution .step-label {
+    font-family: 'Calibri', system-ui, sans-serif;
+    color: var(--naranja);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-top: 8px;
+    margin-bottom: 2px;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* STATS / PROGRESS */
+  .stats-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-card .big { font-size: 24px; font-weight: 700; color: var(--azul); }
+  .stat-card .lbl { font-size: 11px; color: var(--gris); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .badges {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .badge {
+    background: var(--azul-claro);
+    color: var(--azul);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge.gold { background: #FFF3C4; color: #8A6D00; }
+  .badge.silver { background: #E8E8E8; color: #505050; }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: var(--gris);
+  }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 15px; }
+    header .stats-mini { gap: 4px; }
+    header .stat { padding: 4px 8px; font-size: 11px; min-width: 44px; }
+    header .stat b { font-size: 14px; }
+    .stats-board { grid-template-columns: repeat(2, 1fr); }
+    .problem .expr { font-size: 22px; }
+    .modules-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ===== MODAL IDENTIFICACIÓN ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(31,56,100,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    padding: 32px 28px;
+    max-width: 420px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal .logo-big {
+    width: 56px; height: 56px;
+    background: var(--azul);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 24px; color: #fff;
+    margin: 0 auto 16px;
+  }
+  .modal h2 { text-align: center; color: var(--azul); font-size: 20px; margin-bottom: 6px; }
+  .modal p { text-align: center; color: var(--gris); font-size: 14px; margin-bottom: 20px; }
+  .modal label { display: block; font-size: 13px; font-weight: 600; color: var(--azul); margin-bottom: 4px; }
+  .modal input, .modal select {
+    width: 100%; padding: 10px 12px;
+    border: 2px solid var(--borde); border-radius: 7px;
+    font-size: 16px; font-family: inherit; outline: none;
+    margin-bottom: 14px; transition: border-color 0.15s;
+  }
+  .modal input:focus, .modal select:focus { border-color: var(--azul); }
+  .modal .btn-modal {
+    width: 100%; padding: 13px;
+    background: var(--naranja); color: #fff;
+    border: none; border-radius: 7px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: background 0.15s;
+  }
+  .modal .btn-modal:hover { background: #a64a0e; }
+  .modal .nota { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; }
+
+  /* ===== SYNC INDICATOR ===== */
+  #sync-status {
+    position: fixed; bottom: 12px; right: 12px;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    transition: all 0.3s; z-index: 50;
+    display: none;
+  }
+  #sync-status.syncing { display: block; background: var(--azul-claro); color: var(--azul); }
+  #sync-status.ok { display: block; background: var(--verde-claro); color: var(--verde); }
+  #sync-status.err { display: block; background: var(--rojo-claro); color: var(--rojo); }
+
+  /* ===== PANEL DOCENTE ===== */
+  #panel-view { display: none; }
+  .panel-header {
+    background: var(--azul); color: #fff;
+    padding: 20px 24px; border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 6px solid var(--naranja);
+  }
+  .panel-header h2 { font-size: 22px; margin-bottom: 4px; }
+  .panel-header p { font-size: 14px; opacity: 0.85; }
+  .panel-table {
+    width: 100%; border-collapse: collapse;
+    background: #fff; border-radius: 10px;
+    overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    font-size: 14px;
+  }
+  .panel-table th {
+    background: var(--azul); color: #fff;
+    padding: 10px 14px; text-align: left;
+    font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .panel-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--borde);
+    vertical-align: middle;
+  }
+  .panel-table tr:last-child td { border-bottom: none; }
+  .panel-table tr:nth-child(even) td { background: var(--gris-claro); }
+  .pct-bar {
+    height: 6px; background: var(--borde);
+    border-radius: 3px; width: 80px; display: inline-block;
+    vertical-align: middle; margin-left: 6px;
+  }
+  .pct-fill { height: 100%; border-radius: 3px; background: var(--verde); }
+  .panel-refresh {
+    font-size: 12px; color: var(--gris);
+    margin-bottom: 10px;
+  }
+  .tag-mod {
+    display: inline-block;
+    background: var(--azul-claro); color: var(--azul);
+    border-radius: 4px; padding: 1px 6px;
+    font-size: 11px; font-weight: 600; margin: 1px;
+  }
+</style>
+</head>
+<body>
+<!-- MODAL IDENTIFICACIÓN ESTUDIANTE -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="logo-big">8B</div>
+    <h2>¡Bienvenido/a!</h2>
+    <p>Escribe tu nombre y curso para que tu progreso quede guardado y tu profesor/a pueda verlo.</p>
+    <label for="input-nombre">Tu nombre completo</label>
+    <input id="input" type="text">
+    <button onclick="guardarDato()">Guardar</button>
+    <input type="text" id="input-nombre" placeholder="Ej: María González" autocomplete="name">
+    <label for="input-curso">Curso</label>
+    <select id="input-curso">
+      <option value="8°A">8°A</option>
+      <option value="8°B">8°B</option>
+      <option value="8°C">8°C</option>
+      <option value="8°D">8°D</option>
+      <option value="otro">Otro</option>
+    </select>
+    <button class="btn-modal" onclick="registrarEstudiante()">Comenzar a practicar →</button>
+    <p class="nota">No se guarda ningún dato personal sensible. Solo tu nombre, curso y puntuación.</p>
+  </div>
+</div>
+
+<!-- INDICADOR SYNC -->
+<div id="sync-status"></div>
+
+<header>
+  <div class="logo">8B</div>
+  <div>
+    <h1>Refuerzo Matemática · 8° Básico</h1>
+    <div class="sub">Colegio Cabo de Hornos · <span id="header-nombre" style="color:#FFD580;font-weight:600;"></span> <span id="header-mode" style="color:#aaa;font-size:11px;"></span></div>
+  </div>
+  <div class="stats-mini">
+    <div class="stat"><b id="mini-correct">0</b>correctas</div>
+    <div class="stat"><b id="mini-streak">0</b>racha</div>
+    <div class="stat"><b id="mini-acc">—</b>precisión</div>
+  </div>
+</header>
+
+<main>
+
+<!-- HOME VIEW -->
+<div id="home">
+  <h2>Elige un módulo para practicar</h2>
+  <p class="lead">Cada módulo entrena uno de los nodos críticos del plan. Los ejercicios se generan al azar, nunca verás dos iguales.</p>
+
+  <div class="stats-board">
+    <div class="stat-card"><div class="big" id="sb-total">0</div><div class="lbl">Ejercicios</div></div>
+    <div class="stat-card"><div class="big" id="sb-correct">0</div><div class="lbl">Correctos</div></div>
+    <div class="stat-card"><div class="big" id="sb-acc">—</div><div class="lbl">Precisión</div></div>
+    <div class="stat-card"><div class="big" id="sb-streak">0</div><div class="lbl">Racha actual</div></div>
+  </div>
+
+  <div class="info-box">
+    <h4>Insignias obtenidas</h4>
+    <div class="badges" id="badges-box">
+      <span class="badge" style="background:#EEE;color:#888;">Aún no tienes insignias — resuelve 5 seguidas para tu primera</span>
+    </div>
+  </div>
+
+  <div class="modules-grid" id="modules-grid"></div>
+
+  <div class="info-box">
+    <h4>Cómo usar la app</h4>
+    <p>Elige un módulo, selecciona la dificultad y resuelve el ejercicio en tu cuaderno. Escribe solo el resultado final en el cuadro de respuesta. Si aciertas, verás un paso siguiente; si te equivocas, verás la solución paso a paso para aprender de la corrección.</p>
+  </div>
+</div>
+
+<!-- MODULE VIEW -->
+<div id="module-view">
+  <div class="breadcrumb"><a onclick="goHome()">← Inicio</a> · <span id="bc-mod">Módulo</span></div>
+  <div class="module-header">
+    <h2 id="mod-title">Módulo</h2>
+    <p id="mod-subtitle">—</p>
+  </div>
+  <div class="difficulty-bar">
+    <span class="label">Dificultad:</span>
+    <button class="diff-btn active" data-diff="0" onclick="setDiff(0)">Básico</button>
+    <button class="diff-btn" data-diff="1" onclick="setDiff(1)">Intermedio</button>
+    <button class="diff-btn" data-diff="2" onclick="setDiff(2)">Desafío</button>
+    <span style="margin-left:auto;font-size:12px;color:var(--gris);" id="mod-stats">0 / 0 correctos</span>
+  </div>
+  <div class="exercise-panel">
+    <div class="ex-counter" id="ex-counter">EJERCICIO N° 1</div>
+    <div class="problem" id="problem-box">
+      <div class="statement" id="problem-statement"></div>
+      <div class="expr" id="problem-expr"></div>
+    </div>
+    <div class="answer-row" id="answer-row">
+      <label for="ans-input">Tu respuesta:</label>
+      <input type="text" id="ans-input" autocomplete="off" placeholder="—">
+      <span id="ans-hint" style="font-size:12px;color:var(--gris);"></span>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-primary" id="btn-check" onclick="checkAnswer()">Comprobar</button>
+      <button class="btn btn-secondary" id="btn-next" onclick="nextProblem()" style="display:none;">Siguiente ejercicio →</button>
+      <button class="btn btn-ghost" onclick="showSolution()" id="btn-solve">Ver solución</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+</div>
+
+<!-- PANEL DOCENTE (visible solo con ?panel en la URL) -->
+<div id="panel-view">
+  <div class="panel-header">
+    <h2>📊 Panel docente — Refuerzo Matemática 8° Básico</h2>
+    <p>Progreso en tiempo real de todos los estudiantes · Colegio Cabo de Hornos</p>
+  </div>
+  <p class="panel-refresh" id="panel-refresh-txt">Cargando datos…</p>
+  <div style="overflow-x:auto;">
+    <table class="panel-table" id="panel-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Curso</th>
+          <th>Ejercicios</th>
+          <th>Correctos</th>
+          <th>Precisión</th>
+          <th>Racha máx.</th>
+          <th>Módulos activos</th>
+          <th>Última actividad</th>
+        </tr>
+      </thead>
+      <tbody id="panel-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  Colegio Cabo de Hornos · Plan de Reforzamiento Matemática 8° Básico · Año académico 2026<br>
+  App web de uso local · sin registro · sin datos personales
+</footer>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGFHMp9Yj9SqHbglqONUmvBvJ2Lg1pB-k",
+    authDomain: "mi-app-7492c.firebaseapp.com",
+    projectId: "mi-app-7492c",
+    storageBucket: "mi-app-7492c.firebasestorage.app",
+    messagingSenderId: "909443763474",
+    appId: "1:909443763474:web:09dc694db13d110816f7cb"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function guardarDato() {
+    const texto = document.getElementById("input").value;
+
+    await addDoc(collection(db, "datos"), {
+      valor: texto,
+      fecha: new Date()
+    });
+
+    alert("Guardado!");
+  }
+
+  window.guardarDato = guardarDato;
+</script>
+// Firebase es opcional: funciona sin él (modo local/offline)
+let db = null;
+try {
+  if (typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey !== "PEGAR_apiKey_AQUÍ") {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    console.log("Firebase conectado correctamente.");
+  } else {
+    console.log("Firebase no disponible — modo sin guardado en nube.");
+  }
+} catch(e) {
+  console.warn("Firebase no pudo inicializar:", e.message);
+}
+
+// Colección principal
+const COL = "refuerzo_mat_8b";
+
+// =============================================================
+// ESTADO
+// =============================================================
+const state = {
+  currentModule: null,
+  difficulty: 0,
+  currentProblem: null,
+  answered: false,
+  exerciseN: 0,
+  studentId: null,   // clave normalizada en Firestore
+  studentName: null,
+  studentCurso: null,
+  stats: {
+    total: 0, correct: 0, streak: 0, maxStreak: 0,
+    perModule: {}
+  },
+  badges: new Set()
+};
+
+// =============================================================
+// FIREBASE — identificación y sincronización
+// =============================================================
+function normalizar(nombre) {
+  return nombre.trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_");
+}
+
+function mostrarSync(tipo, msg) {
+  const el = document.getElementById("sync-status");
+  el.textContent = msg;
+  el.className = tipo;
+  el.style.display = "block";
+  if (tipo === "ok") setTimeout(() => { el.className = ""; el.style.display = "none"; }, 2500);
+}
+
+async function registrarEstudiante() {
+  const nombre = document.getElementById("input-nombre").value.trim();
+  const curso  = document.getElementById("input-curso").value;
+  if (nombre.length < 2) {
+    document.getElementById("input-nombre").focus();
+    return;
+  }
+  const id = normalizar(nombre) + "_" + normalizar(curso);
+  state.studentId   = id;
+  state.studentName = nombre;
+  state.studentCurso = curso;
+  localStorage.setItem("cch_refmat_student", JSON.stringify({ id, nombre, curso }));
+  document.getElementById("modal-overlay").classList.add("hidden");
+  document.getElementById("header-nombre").textContent = nombre;
+  document.getElementById("home").style.display = "block";
+  document.getElementById("module-view").style.display = "none";
+  document.getElementById("header-mode").textContent = db ? "☁ con guardado" : "· modo local (sin guardado)";
+  await cargarProgreso();
+  renderHome();
+}
+
+async function cargarProgreso() {
+  if (!state.studentId || !db) return;
+  mostrarSync("syncing", "⏳ Cargando tu progreso…");
+  try {
+    const doc = await db.collection(COL).doc(state.studentId).get();
+    if (doc.exists) {
+      const d = doc.data();
+      state.stats.total     = d.total     || 0;
+      state.stats.correct   = d.correct   || 0;
+      state.stats.streak    = d.streak    || 0;
+      state.stats.maxStreak = d.maxStreak || 0;
+      state.stats.perModule = d.perModule || {};
+      if (d.insignias) state.badges = new Set(d.insignias);
+    }
+    mostrarSync("ok", "✓ Progreso cargado");
+  } catch(e) {
+    mostrarSync("err", "⚠ Sin conexión — modo offline");
+  }
+}
+
+async function syncProgress() {
+  if (!state.studentId || !db) return;
+  mostrarSync("syncing", "⏳ Guardando…");
+  const data = {
+    nombre:        state.studentName,
+    curso:         state.studentCurso,
+    total:         state.stats.total,
+    correct:       state.stats.correct,
+    streak:        state.stats.streak,
+    maxStreak:     state.stats.maxStreak,
+    perModule:     state.stats.perModule,
+    insignias:     [...state.badges],
+    ultimaActividad: (db && typeof firebase !== 'undefined') ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
+  };
+  try {
+    await db.collection(COL).doc(state.studentId).set(data, { merge: true });
+    mostrarSync("ok", "✓ Guardado");
+  } catch(e) {
+    mostrarSync("err", "⚠ No se pudo guardar");
+  }
+}
+
+// =============================================================
+// PANEL DOCENTE
+// =============================================================
+function iniciarPanel() {
+  document.getElementById("modal-overlay").classList.add("hidden");
+  document.getElementById("home").style.display = "none";
+  document.getElementById("module-view").style.display = "none";
+  document.getElementById("panel-view").style.display = "block";
+
+  // Listener en tiempo real
+  if (!db) {
+    document.getElementById("panel-refresh-txt").textContent = "Firebase no configurado — panel no disponible en modo local.";
+    return;
+  }
+  db.collection(COL).orderBy("ultimaActividad", "desc").onSnapshot(snap => {
+    const tbody = document.getElementById("panel-tbody");
+    tbody.innerHTML = "";
+    const ahora = new Date();
+    snap.forEach(doc => {
+      const d = doc.data();
+      const acc = d.total > 0 ? Math.round(100 * d.correct / d.total) : 0;
+      const pct = Math.min(acc, 100);
+      const modsActivos = Object.entries(d.perModule || {})
+        .filter(([,v]) => v.c > 0)
+        .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1,4))
+        .join(" ");
+      let ultimaStr = "—";
+      if (d.ultimaActividad) {
+        const ts = d.ultimaActividad.toDate ? d.ultimaActividad.toDate() : new Date(d.ultimaActividad);
+        const diff = Math.floor((ahora - ts) / 60000);
+        if (diff < 2) ultimaStr = "Ahora";
+        else if (diff < 60) ultimaStr = diff + " min";
+        else if (diff < 1440) ultimaStr = Math.floor(diff/60) + " h";
+        else ultimaStr = Math.floor(diff/1440) + " d";
+      }
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${d.nombre || doc.id}</strong></td>
+        <td>${d.curso || "—"}</td>
+        <td style="text-align:center">${d.total || 0}</td>
+        <td style="text-align:center">${d.correct || 0}</td>
+        <td>
+          ${acc}%
+          <span class="pct-bar"><span class="pct-fill" style="width:${pct}%"></span></span>
+        </td>
+        <td style="text-align:center">🔥 ${d.maxStreak || 0}</td>
+        <td>${modsActivos ? modsActivos.split(" ").map(m=>`<span class="tag-mod">${m}</span>`).join("") : "—"}</td>
+        <td style="color:#888;font-size:13px">${ultimaStr}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    const n = snap.size;
+    document.getElementById("panel-refresh-txt").textContent =
+      n + " estudiante" + (n!==1?"s":"") + " registrado" + (n!==1?"s":"") + " · actualización en tiempo real";
+  });
+}
+
+// =============================================================
+// INICIALIZACIÓN (detectar panel o alumno)
+// =============================================================
+function init() {
+  // ¿Es el panel docente?
+  if (window.location.search.includes("panel")) {
+    iniciarPanel();
+    return;
+  }
+  // ¿Ya se identificó en este navegador?
+  const saved = localStorage.getItem("cch_refmat_student");
+  if (saved) {
+    try {
+      const { id, nombre, curso } = JSON.parse(saved);
+      state.studentId   = id;
+      state.studentName = nombre;
+      state.studentCurso = curso;
+      document.getElementById("modal-overlay").classList.add("hidden");
+      document.getElementById("header-nombre").textContent = nombre;
+      document.getElementById("home").style.display = "block";
+      document.getElementById("module-view").style.display = "none";
+      document.getElementById("header-mode").textContent = db ? "☁ con guardado" : "· modo local (sin guardado)";
+      cargarProgreso().then(() => renderHome());
+      return;
+    } catch(e) {}
+  }
+  // Mostrar modal de registro
+  document.getElementById("modal-overlay").classList.remove("hidden");
+  document.getElementById("home").style.display = "none";
+  document.getElementById("module-view").style.display = "none";
+}
+
+// Enter en modal
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    const overlay = document.getElementById("modal-overlay");
+    if (!overlay.classList.contains("hidden")) {
+      registrarEstudiante();
+      return;
+    }
+    if (document.getElementById("module-view").style.display === "block") {
+      if (!state.answered) checkAnswer();
+      else nextProblem();
+    }
+  }
+});
+
+// =============================================================
+// UTILIDADES
+// =============================================================
+function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function randNonZero(a, b) { let v; do { v = randInt(a, b); } while (v === 0); return v; }
+function choice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function sign(n) { return n < 0 ? "(" + n + ")" : n.toString(); }
+function formatSigned(n) { return n >= 0 ? "+" + n : "" + n; }
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+function approxEqual(userAnswer, correct, tol) {
+  tol = tol || 0.01;
+  const u = parseFloat(String(userAnswer).replace(",", "."));
+  if (isNaN(u)) return false;
+  return Math.abs(u - correct) <= tol;
+}
+
+// =============================================================
+// MÓDULOS
+// =============================================================
+const modules = [
+  { id: "enteros",   num: "01", title: "Operatoria con enteros",      subtitle: "Signos, jerarquía de operaciones y paréntesis",  gen: genEnteros },
+  { id: "potencias", num: "02", title: "Potencias y raíces",          subtitle: "Potencias de base entera y raíz cuadrada",       gen: genPotencias },
+  { id: "ecuaciones",num: "03", title: "Ecuaciones de 1° grado",      subtitle: "Despeje, operación inversa y paréntesis",        gen: genEcuaciones },
+  { id: "funcion",   num: "04", title: "Función lineal y afín",       subtitle: "Evaluación, pendiente e intercepto",             gen: genFuncion },
+  { id: "pitagoras", num: "05", title: "Teorema de Pitágoras",        subtitle: "Cálculo de hipotenusa y catetos",                gen: genPitagoras },
+  { id: "volprob",   num: "06", title: "Volumen y probabilidad",      subtitle: "Prismas, cilindros y regla de Laplace",          gen: genVolProb }
+];
+
+// ---- Generadores (idénticos a versión original) ----
+function genEnteros(diff) {
+  if (diff === 0) {
+    const op = choice(["+", "-"]);
+    const a = randNonZero(-15, 15), b = randNonZero(-15, 15);
+    const expr = a + " " + op + " " + sign(b);
+    const result = op === "+" ? a + b : a - b;
+    const sol = [
+      { label: "Signos", txt: op === "+" ? "Suma: signos iguales → sumo y conservo signo; distintos → resto y llevo el mayor." : "Restar equivale a sumar el opuesto: a − b = a + (−b)." },
+      { label: "Cálculo", txt: expr + " = " + result }
+    ];
+    return { statement: "Calcula:", expr, answer: result, steps: sol, hint: "entero" };
+  }
+  if (diff === 1) {
+    const op = choice(["·", "÷"]);
+    let a, b, result;
+    if (op === "·") { a = randNonZero(-9,9); b = randNonZero(-9,9); result = a*b; }
+    else { b = randNonZero(-9,9); const q = randNonZero(-9,9); a = b*q; result = q; }
+    const expr = sign(a) + " " + op + " " + sign(b);
+    const same = (a>0&&b>0)||(a<0&&b<0);
+    return { statement: "Calcula:", expr, answer: result, steps: [
+      { label: "Regla de signos", txt: same ? "Signos iguales → positivo." : "Signos distintos → negativo." },
+      { label: "Resultado", txt: expr + " = " + result }
+    ], hint: "entero" };
+  }
+  const a = randInt(-10,10), b = randNonZero(-6,6), c = randInt(-6,6), d = randInt(-6,6);
+  const result = a + b*(c-d);
+  const expr = a + " " + formatSigned(b) + " · (" + c + " − " + d + ")";
+  return { statement: "Aplica la jerarquía (PAPOMUDAS):", expr, answer: result, steps: [
+    { label: "Jerarquía", txt: "Paréntesis → multiplicación → suma." },
+    { label: "Paso 1", txt: "(" + c + " − " + d + ") = " + (c-d) },
+    { label: "Paso 2", txt: b + " · " + (c-d) + " = " + (b*(c-d)) },
+    { label: "Resultado", txt: a + " + (" + (b*(c-d)) + ") = " + result }
+  ], hint: "entero" };
+}
+
+function genPotencias(diff) {
+  if (diff === 0) {
+    const b = randNonZero(-6,6), e = choice([2,2,3,3,4]);
+    const result = Math.pow(b,e);
+    return { statement: "Calcula la potencia:", expr: "("+b+")^"+e, answer: result, steps: [
+      { label: "Definición", txt: "Multiplicar la base por sí misma "+e+" veces." },
+      { label: "Signo", txt: b<0 ? (e%2===0?"Par → positivo.":"Impar → negativo.") : "Base positiva → positivo." },
+      { label: "Resultado", txt: "("+b+")^"+e+" = "+result }
+    ], hint: "entero" };
+  }
+  if (diff === 1) {
+    const n = randInt(4,20), cuadrado = n*n;
+    return { statement: "Calcula la raíz cuadrada:", expr: "√"+cuadrado, answer: n, steps: [
+      { label: "Estrategia", txt: "Buscar un número que al cuadrarlo dé "+cuadrado+"." },
+      { label: "Resultado", txt: "√"+cuadrado+" = "+n+" (porque "+n+"² = "+cuadrado+")" }
+    ], hint: "entero no negativo" };
+  }
+  let n; do { n = randInt(2,400); } while (Math.sqrt(n)===Math.floor(Math.sqrt(n)));
+  const floor = Math.floor(Math.sqrt(n));
+  return { statement: "Estima √"+n+" entre dos enteros. Escribe el entero menor (parte entera):", expr: "√"+n, answer: floor, steps: [
+    { label: "Cuadrados cercanos", txt: floor+"² = "+(floor*floor)+" y "+(floor+1)+"² = "+((floor+1)*(floor+1)) },
+    { label: "Conclusión", txt: floor+" < √"+n+" < "+(floor+1) }
+  ], hint: "entero (parte entera)" };
+}
+
+function genEcuaciones(diff) {
+  if (diff === 0) {
+    const x = randNonZero(-8,8), a = randNonZero(-5,5), b = randInt(-10,10), c = a*x+b;
+    const expr = (a===1?"x":(a===-1?"−x":a+"x"))+" "+formatSigned(b)+" = "+c;
+    return { statement: "Resuelve la ecuación:", expr, answer: x, steps: [
+      { label: "Paso 1", txt: "Pasar "+b+" al otro lado: "+(a===1?"x":(a===-1?"−x":a+"x"))+" = "+(c-b) },
+      { label: "Paso 2", txt: "Dividir por "+a+": x = "+x },
+      { label: "Verificación", txt: a+"·("+x+") + ("+b+") = "+(a*x+b)+" ✓" }
+    ], hint: "entero" };
+  }
+  if (diff === 1) {
+    const x = randNonZero(-6,6), a = randInt(2,5), b = randInt(-8,8);
+    let c = randInt(-4,4); if (c===a) c+=1;
+    const d = (a-c)*x+a*b;
+    const expr = a+"(x "+formatSigned(b)+") = "+(c===1?"x":(c===-1?"−x":c+"x"))+" "+formatSigned(d);
+    return { statement: "Resuelve la ecuación:", expr, answer: x, steps: [
+      { label: "Distribuir", txt: a+"x + "+(a*b)+" = "+c+"x + "+d },
+      { label: "Agrupar", txt: (a-c)+"x = "+(d-a*b) },
+      { label: "Despejar", txt: "x = "+x },
+      { label: "Verificación", txt: a+"("+(x+b)+") = "+(a*(x+b))+";  "+c+"·"+x+"+"+d+" = "+(c*x+d)+" ✓" }
+    ], hint: "entero" };
+  }
+  const x = randNonZero(-8,8), bv = choice([2,3,4]), dv = choice([2,3,4,5]);
+  const av = randInt(-6,6), cv = randInt(-6,6);
+  const e = (x+av)/bv - (x-cv)/dv;
+  const mcm = (bv*dv)/gcd(bv,dv);
+  const expr = "(x "+formatSigned(av)+")/" + bv + " − (x "+formatSigned(-cv)+")/" + dv + " = "+(Number.isInteger(e)?e:e.toFixed(2));
+  return { statement: "Resuelve la ecuación con fracciones (la solución es entera):", expr, answer: x, steps: [
+    { label: "Multiplicar por m.c.m.="+mcm, txt: "Eliminar denominadores." },
+    { label: "Despejar x", txt: "x = "+x },
+    { label: "Verificación", txt: "Reemplazando x="+x+" la igualdad se cumple ✓" }
+  ], hint: "entero" };
+}
+
+function genFuncion(diff) {
+  const m = randNonZero(-5,5), n = randInt(-10,10);
+  const fdef = "f(x) = "+(m===1?"x":(m===-1?"−x":m+"x"))+" "+formatSigned(n);
+  if (diff === 0) {
+    const x0 = randInt(-6,6), result = m*x0+n;
+    return { statement: "Dada "+fdef+", calcula:", expr: "f("+x0+") ?", answer: result, steps: [
+      { label: "Sustituir", txt: "f("+x0+") = "+m+"·("+x0+") + ("+n+") = "+(m*x0)+" + ("+n+")" },
+      { label: "Resultado", txt: "f("+x0+") = "+result }
+    ], hint: "entero" };
+  }
+  if (diff === 1) {
+    const x1=randInt(-6,6); let x2=randInt(-6,6); if(x2===x1)x2=x1+1;
+    const mv=randNonZero(-4,4), y1=randInt(-8,8), y2=y1+mv*(x2-x1);
+    return { statement: "Calcula la pendiente m de la recta que pasa por:", expr: "P1("+x1+", "+y1+")   P2("+x2+", "+y2+")", answer: mv, steps: [
+      { label: "Fórmula", txt: "m = (y2 − y1) / (x2 − x1)" },
+      { label: "Resultado", txt: "m = ("+(y2-y1)+") / ("+(x2-x1)+") = "+mv }
+    ], hint: "entero" };
+  }
+  const x0=randNonZero(-6,6), y0=m*x0+n;
+  return { statement: "Dada "+fdef+", encuentra el x que cumple:", expr: "f(x) = "+y0+"   → x ?", answer: x0, steps: [
+    { label: "Plantear", txt: m+"x + ("+n+") = "+y0 },
+    { label: "Despejar", txt: m+"x = "+(y0-n)+" → x = "+x0 },
+    { label: "Verificación", txt: "f("+x0+") = "+y0+" ✓" }
+  ], hint: "entero" };
+}
+
+const ternas = [[3,4,5],[5,12,13],[6,8,10],[7,24,25],[8,15,17],[9,12,15],[10,24,26],[12,16,20],[15,20,25],[20,21,29]];
+function genPitagoras(diff) {
+  if (diff === 0) {
+    const t=choice(ternas), a=t[0],b=t[1],c=t[2];
+    return { statement: "Calcula la hipotenusa c:", expr: "a = "+a+",  b = "+b, answer: c, steps: [
+      { label: "Fórmula", txt: "c² = a² + b² = "+a+"² + "+b+"² = "+(a*a+b*b) },
+      { label: "Resultado", txt: "c = √"+(a*a+b*b)+" = "+c }
+    ], hint: "entero" };
+  }
+  if (diff === 1) {
+    const t=choice(ternas), a=t[0],b=t[1],c=t[2];
+    return { statement: "Encuentra el cateto faltante a:", expr: "c = "+c+",  b = "+b, answer: a, steps: [
+      { label: "Fórmula", txt: "a² = c² − b² = "+(c*c-b*b) },
+      { label: "Resultado", txt: "a = "+a }
+    ], hint: "entero" };
+  }
+  const t=choice(ternas);
+  return { statement: "Una escalera de "+t[2]+" m está apoyada en un muro. La base está a "+t[0]+" m del muro. ¿A qué altura llega?", expr: "escalera = "+t[2]+" m · base = "+t[0]+" m", answer: t[1], steps: [
+    { label: "Modelar", txt: "La escalera es la hipotenusa; la base y la altura son los catetos." },
+    { label: "Fórmula", txt: "altura² = "+t[2]+"² − "+t[0]+"² = "+(t[2]*t[2]-t[0]*t[0]) },
+    { label: "Resultado", txt: "altura = "+t[1]+" m" }
+  ], hint: "metros (entero)" };
+}
+
+function genVolProb(diff) {
+  if (diff === 0) {
+    const a=randInt(2,12),b=randInt(2,12),c=randInt(2,10),result=a*b*c;
+    return { statement: "Calcula el volumen del prisma rectangular (cm³):", expr: "largo="+a+" · ancho="+b+" · alto="+c, answer: result, steps: [
+      { label: "Fórmula", txt: "V = largo · ancho · alto = "+a+"·"+b+"·"+c },
+      { label: "Resultado", txt: "V = "+result+" cm³" }
+    ], hint: "número en cm³" };
+  }
+  if (diff === 1) {
+    const r=randInt(2,8),h=randInt(3,12),result=Math.round(Math.PI*r*r*h*100)/100;
+    return { statement: "Calcula el volumen del cilindro (cm³, usa π ≈ 3,1416):", expr: "radio="+r+" cm · altura="+h+" cm", answer: result, tol: 0.5, steps: [
+      { label: "Fórmula", txt: "V = π · r² · h = π · "+r+"² · "+h+" = "+(r*r*h)+"π" },
+      { label: "Aproximación", txt: "V ≈ "+result+" cm³" }
+    ], hint: "cm³ (decimal)" };
+  }
+  const opts = [
+    {casos:[2,4,6],desc:"un número par",total:6},
+    {casos:[1,3,5],desc:"un número impar",total:6},
+    {casos:[4,5,6],desc:"un número mayor que 3",total:6}
+  ];
+  const o=choice(opts), p=o.casos.length/o.total;
+  return { statement: "Lanzas un dado equilibrado. ¿P(obtener "+o.desc+")? Decimal con 3 cifras.", expr: "dado de 6 caras", answer: p, tol: 0.01, steps: [
+    { label: "Laplace", txt: "P = favorables / totales = "+o.casos.length+"/"+o.total },
+    { label: "Resultado", txt: "P = "+p.toFixed(3)+" ≈ "+(p*100).toFixed(1)+"%" }
+  ], hint: "decimal (ej: 0,500)" };
+}
+
+// =============================================================
+// RENDER Y UI
+// =============================================================
+function renderHome() {
+  const grid = document.getElementById("modules-grid");
+  grid.innerHTML = "";
+  modules.forEach(mod => {
+    const stats = state.stats.perModule[mod.id] || { t: 0, c: 0 };
+    const acc = stats.t > 0 ? Math.round(100 * stats.c / stats.t) + "%" : "—";
+    const card = document.createElement("div");
+    card.className = "module-card";
+    card.onclick = () => openModule(mod.id);
+    card.innerHTML =
+      '<span class="num">MÓDULO ' + mod.num + '</span>' +
+      '<h3>' + mod.title + '</h3>' +
+      '<p>' + mod.subtitle + '</p>' +
+      '<span class="tag">' + stats.c + ' correctos · precisión ' + acc + '</span>';
+    grid.appendChild(card);
+  });
+  updateStatsDisplay();
+}
+
+function updateStatsDisplay() {
+  const s = state.stats;
+  document.getElementById("sb-total").textContent = s.total;
+  document.getElementById("sb-correct").textContent = s.correct;
+  document.getElementById("sb-streak").textContent = s.streak;
+  document.getElementById("sb-acc").textContent = s.total > 0 ? Math.round(100 * s.correct / s.total) + "%" : "—";
+  document.getElementById("mini-correct").textContent = s.correct;
+  document.getElementById("mini-streak").textContent = s.streak;
+  document.getElementById("mini-acc").textContent = s.total > 0 ? Math.round(100 * s.correct / s.total) + "%" : "—";
+  const mod = state.currentModule;
+  if (mod) {
+    const ms = state.stats.perModule[mod.id] || { t: 0, c: 0 };
+    document.getElementById("mod-stats").textContent = ms.c + " / " + ms.t + " correctos";
+  }
+  renderBadges();
+}
+
+function renderBadges() {
+  const box = document.getElementById("badges-box");
+  state.badges.clear();
+  if (state.stats.maxStreak >= 5)  state.badges.add("racha5");
+  if (state.stats.maxStreak >= 10) state.badges.add("racha10");
+  if (state.stats.correct >= 20)   state.badges.add("veinte");
+  if (state.stats.correct >= 50)   state.badges.add("cincuenta");
+  let completos = 0;
+  for (const m of modules) {
+    const s = state.stats.perModule[m.id];
+    if (s && s.c >= 3) completos++;
+  }
+  if (completos >= 3)              state.badges.add("tresMod");
+  if (completos === modules.length) state.badges.add("todosMod");
+  const defs = {
+    racha5:   { cls: "",       txt: "🔥 Racha de 5" },
+    racha10:  { cls: "gold",   txt: "🏆 Racha de 10" },
+    veinte:   { cls: "silver", txt: "⭐ 20 correctos" },
+    cincuenta:{ cls: "gold",   txt: "💎 50 correctos" },
+    tresMod:  { cls: "",       txt: "📘 3 módulos activos" },
+    todosMod: { cls: "gold",   txt: "🎓 Todos los módulos" }
+  };
+  if (state.badges.size === 0) {
+    box.innerHTML = '<span class="badge" style="background:#EEE;color:#888;">Resuelve 5 correctas seguidas para tu primera insignia</span>';
+    return;
+  }
+  box.innerHTML = "";
+  for (const b of state.badges) {
+    const d = defs[b];
+    const el = document.createElement("span");
+    el.className = "badge " + d.cls;
+    el.textContent = d.txt;
+    box.appendChild(el);
+  }
+}
+
+function goHome() {
+  document.getElementById("home").style.display = "block";
+  document.getElementById("module-view").style.display = "none";
+  state.currentModule = null;
+  renderHome();
+}
+
+function openModule(id) {
+  const mod = modules.find(m => m.id === id);
+  state.currentModule = mod;
+  state.difficulty = 0;
+  state.exerciseN = 0;
+  document.getElementById("home").style.display = "none";
+  document.getElementById("module-view").style.display = "block";
+  document.getElementById("mod-title").textContent = "Módulo " + mod.num + " · " + mod.title;
+  document.getElementById("mod-subtitle").textContent = mod.subtitle;
+  document.getElementById("bc-mod").textContent = mod.title;
+  document.querySelectorAll(".diff-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".diff-btn")[0].classList.add("active");
+  nextProblem();
+}
+
+function setDiff(d) {
+  state.difficulty = d;
+  document.querySelectorAll(".diff-btn").forEach(b => b.classList.remove("active"));
+  document.querySelector('.diff-btn[data-diff="' + d + '"]').classList.add("active");
+  nextProblem();
+}
+
+function nextProblem() {
+  const mod = state.currentModule;
+  if (!mod) return;
+  state.currentProblem = mod.gen(state.difficulty);
+  state.answered = false;
+  state.exerciseN++;
+  document.getElementById("ex-counter").textContent = "EJERCICIO N° " + state.exerciseN;
+  document.getElementById("problem-statement").textContent = state.currentProblem.statement;
+  document.getElementById("problem-expr").textContent = state.currentProblem.expr;
+  const input = document.getElementById("ans-input");
+  input.value = ""; input.className = ""; input.disabled = false;
+  document.getElementById("ans-hint").textContent = state.currentProblem.hint ? "(" + state.currentProblem.hint + ")" : "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("feedback").innerHTML = "";
+  document.getElementById("btn-check").style.display = "inline-block";
+  document.getElementById("btn-next").style.display = "none";
+  document.getElementById("btn-solve").style.display = "inline-block";
+  setTimeout(() => input.focus(), 50);
+  updateStatsDisplay();
+}
+
+function checkAnswer() {
+  if (state.answered) return;
+  const p = state.currentProblem;
+  const input = document.getElementById("ans-input");
+  const raw = input.value.trim();
+  if (raw === "") { input.focus(); return; }
+  const correct = approxEqual(raw, p.answer, p.tol || 0.001);
+  state.answered = true;
+  input.disabled = true;
+  input.className = correct ? "ok" : "fail";
+  state.stats.total++;
+  const modId = state.currentModule.id;
+  if (!state.stats.perModule[modId]) state.stats.perModule[modId] = { t: 0, c: 0 };
+  state.stats.perModule[modId].t++;
+  if (correct) {
+    state.stats.correct++;
+    state.stats.perModule[modId].c++;
+    state.stats.streak++;
+    if (state.stats.streak > state.stats.maxStreak) state.stats.maxStreak = state.stats.streak;
+  } else {
+    state.stats.streak = 0;
+  }
+  const fb = document.getElementById("feedback");
+  if (correct) {
+    fb.className = "feedback ok";
+    fb.innerHTML = '<h5>✓ ¡Correcto!</h5><div style="font-size:14px;color:#333;">La respuesta es ' + p.answer + '. Buen trabajo.</div>' + renderSteps(p.steps);
+  } else {
+    fb.className = "feedback fail";
+    fb.innerHTML = '<h5>✗ No es la respuesta correcta</h5><div style="font-size:14px;color:#333;">La respuesta es <b>' + p.answer + '</b>. Revisa el procedimiento:</div>' + renderSteps(p.steps);
+  }
+  document.getElementById("btn-check").style.display = "none";
+  document.getElementById("btn-next").style.display = "inline-block";
+  document.getElementById("btn-solve").style.display = "none";
+  updateStatsDisplay();
+  // Guardar en Firestore después de cada respuesta (solo si Firebase está disponible)
+  if (db) syncProgress();
+}
+
+function renderSteps(steps) {
+  let html = '<div class="solution"><div style="font-size:12px;font-weight:700;color:var(--azul);letter-spacing:0.4px;margin-bottom:4px;">PROCEDIMIENTO</div>';
+  for (const s of steps) {
+    html += '<div class="step-label">' + s.label + '</div>';
+    html += '<div class="step">' + s.txt + '</div>';
+  }
+  return html + '</div>';
+}
+
+function showSolution() {
+  const p = state.currentProblem;
+  state.answered = true;
+  document.getElementById("ans-input").disabled = true;
+  const fb = document.getElementById("feedback");
+  fb.className = "feedback fail";
+  fb.innerHTML = '<h5>Solución paso a paso</h5><div style="font-size:14px;color:#333;">La respuesta es <b>' + p.answer + '</b>.</div>' + renderSteps(p.steps);
+  document.getElementById("btn-check").style.display = "none";
+  document.getElementById("btn-next").style.display = "inline-block";
+  document.getElementById("btn-solve").style.display = "none";
+}
+
+// Arrancar
+init();
+</script>
+
+</body>
+</html>
