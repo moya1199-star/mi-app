@@ -645,38 +645,23 @@
   App web de uso local · sin registro · sin datos personales
 </footer>
 
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
+<script>
+// =============================================================
+// ██████╗  CONFIGURACIÓN FIREBASE — EDITAR AQUÍ
+// =============================================================
+// Reemplaza estos valores con los de tu proyecto Firebase
+// (Consola Firebase → Tu proyecto → Configuración → Aplicación web)
+const FIREBASE_CONFIG = {
     apiKey: "AIzaSyBGFHMp9Yj9SqHbglqONUmvBvJ2Lg1pB-k",
     authDomain: "mi-app-7492c.firebaseapp.com",
     projectId: "mi-app-7492c",
     storageBucket: "mi-app-7492c.firebasestorage.app",
     messagingSenderId: "909443763474",
     appId: "1:909443763474:web:09dc694db13d110816f7cb"
-  };
+};
+// =============================================================
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  async function guardarDato() {
-    const texto = document.getElementById("input").value;
-
-    await addDoc(collection(db, "datos"), {
-      valor: texto,
-      fecha: new Date()
-    });
-
-    alert("Guardado!");
-  }
-
-  window.guardarDato = guardarDato;
-</script>
+// Inicializar Firebase
 // Firebase es opcional: funciona sin él (modo local/offline)
 let db = null;
 try {
